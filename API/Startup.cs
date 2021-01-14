@@ -18,6 +18,9 @@ namespace API
 {
     public class Startup
     {
+        
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
         private readonly IConfiguration _config;
         public Startup(IConfiguration config)
         {
@@ -30,14 +33,25 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+    
+            services.AddCors(options =>
+            {
+                options.AddPolicy(MyAllowSpecificOrigins,
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:4200");
+                });
+            });
+
             services.AddDbContext<DataContext>(options =>
              {
                  options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
 
              });
 
+
             services.AddControllers();
-            services.AddCors();
+
 
         }
 
@@ -54,12 +68,7 @@ namespace API
 
             app.UseRouting();
 
-            app.UseCors(policy => 
-                policy.AllowAnyHeader()
-                .AllowAnyMethod()
-                .WithOrigins("http://localhost:4200")
-                .AllowCredentials()
-                .WithOrigins("http://localhost:4200"));
+            app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
 
